@@ -1,0 +1,15 @@
+
+
+Name :
+
+Good day valued customer!
+The following is information regarding 
+your flight on the
+at
+
+Class:
+Seat number:
+Total paid:
+Destination:
+
+Kind regards.

@@ -1,0 +1,327 @@
+unit clsBusinessAccess_u;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, jpeg, ExtCtrls, StdCtrls, Math, Buttons, dmEuroTrekker_u;
+
+type
+  TBusinessAccess = class(TObject)
+
+  private
+  fUsername : string;
+  fActive : Boolean;
+
+
+  public
+  constructor Create(sUsername : string);
+  function GetActive : Boolean;
+  function GetCountryID(sCountryName : string) : string;
+  function GenerateAccomID(sCountryName : string) : string;
+  function GenerateTourID(sCountryName : string) : string;
+  function GenerateFlightID(sCountryName : string) : string;
+  function ValidateAccom(sName, sCountry, sType : string) : Boolean;
+  function Validate(sName, sCountry: string) : Boolean;
+  end;
+
+implementation
+
+{ TBusinessAccess }
+
+
+
+{ TBusinessAccess }
+
+
+{ TBusinessAccess }
+
+constructor TBusinessAccess.Create(sUsername: string);
+begin
+  fUsername := sUsername;
+end;
+
+
+
+function TBusinessAccess.GenerateAccomID(sCountryName: string): string;
+ var
+  sCountryID, sIDWithoutNum, sNewID: string;
+  iPrevNum,  iNewNum  : Integer;
+  bStop : Boolean;
+begin
+  with dmEuroTrekker do
+  begin
+    if (tblCountryInfo.Locate('CountryName',sCountryName,[])) or (tblCountryInfo.Locate('CaptialCity',sCountryName,[])) then
+     begin
+       sCountryID := tblCountryInfo['CountryID'];
+     end;
+  end;
+
+  with dmEuroTrekker do
+    begin
+      if tblAccommodation.Locate('CountryID',sCountryID,[]) then
+        begin
+          bStop := False;
+          while bStop = False do
+           begin
+               iPrevNum := StrToInt(Copy(tblAccommodation['AccommodationID'],9,Length(tblAccommodation['AccommodationID'])));
+               iNewNum := iPrevNum + 1;
+               sIDWithoutNum := Copy(tblAccommodation['AccommodationID'],1,8);
+
+               sNewID := sIDWithoutNum + IntToStr(iNewNum);
+
+              if tblAccommodation.Locate('AccommodationID',sNewID,[]) then
+                begin
+                   Inc(iNewNum);
+                end
+              else
+              begin
+                 bStop := True;
+                 Result := sNewID;
+              end;
+           end;
+        end;
+    end;
+end;
+function TBusinessAccess.GenerateFlightID(sCountryName: string): string;
+var
+  sCountryID, sIDWithoutNum, sNewID: string;
+  iPrevNum,  iNewNum  : Integer;
+  bStop : Boolean;
+begin
+  with dmEuroTrekker do
+  begin
+    if (tblCountryInfo.Locate('CountryName',sCountryName,[])) or (tblCountryInfo.Locate('CaptialCity',sCountryName,[])) then
+     begin
+       sCountryID := tblCountryInfo['CountryID'];
+     end;
+  end;
+
+  with dmEuroTrekker do
+    begin
+     tblFlights.Open;
+     tblFlights.Insert;
+      if tblFlights.Locate('CountryID',sCountryID,[]) then
+        begin
+          bStop := False;
+          while bStop = False do
+           begin
+               iPrevNum := StrToInt(Copy(tblFlights['FlightID'],9,Length(tblFlights['FlightID'])));
+               iNewNum := iPrevNum + 1;
+               sIDWithoutNum := Copy(tblFlights['FlightID'],1,8);
+
+               sNewID := sIDWithoutNum + IntToStr(iNewNum);
+
+              if tblFlights.Locate('FlightID',sNewID,[]) then
+                begin
+                   Inc(iNewNum);
+                end
+              else
+              begin
+                 bStop := True;
+                 Result := sNewID;
+              end;
+           end;
+        end;
+    end;
+end;
+
+function TBusinessAccess.GenerateTourID(sCountryName: string): string;
+var
+  sCountryID, sIDWithoutNum, sNewID: string;
+  iPrevNum,  iNewNum  : Integer;
+  bStop : Boolean;
+begin
+  with dmEuroTrekker do
+  begin
+    if (tblCountryInfo.Locate('CountryName',sCountryName,[])) or (tblCountryInfo.Locate('CaptialCity',sCountryName,[])) then
+     begin
+       sCountryID := tblCountryInfo['CountryID'];
+     end;
+  end;
+
+  with dmEuroTrekker do
+    begin
+      if tblTours.Locate('CountryID',sCountryID,[]) then
+        begin
+          bStop := False;
+          while bStop = False do
+           begin
+               iPrevNum := StrToInt(Copy(tblTours['TourID'],9,Length(tblTours['TourID'])));
+               iNewNum := iPrevNum + 1;
+               sIDWithoutNum := Copy(tblTours['TourID'],1,8);
+
+               sNewID := sIDWithoutNum + IntToStr(iNewNum);
+
+              if tblTours.Locate('TourID',sNewID,[]) then
+                begin
+                   Inc(iNewNum);
+                end
+              else
+              begin
+                 bStop := True;
+                 Result := sNewID;
+              end;
+           end;
+        end;
+    end;
+end;
+
+
+function TBusinessAccess.GetActive: Boolean;
+begin
+  Result := fActive;
+end;
+
+function TBusinessAccess.GetCountryID(sCountryName: string): string;
+begin
+  with dmEuroTrekker do
+  begin
+    if (tblCountryInfo.Locate('CountryName',sCountryName,[])) or (tblCountryInfo.Locate('CaptialCity',sCountryName,[])) then
+     begin
+       Result := tblCountryInfo['CountryID'];
+     end;
+  end;
+end;
+
+function TBusinessAccess.ValidateAccom(sName, sCountry, sType: string): Boolean;
+ var
+ K : Integer;
+begin
+  //Name
+   if sName = '' then
+        begin
+         MessageDlg('All fields are compulsory, please enter name.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   for K := 1 to Length(sName) do
+     begin
+       if not((sName[K] in['A'..'Z']) or (sName[K] in['a'..'z']) or (sName[K] = ' '))  then
+       begin
+        MessageDlg('The name you entered contains numbered digits or symbols, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+
+       if (sName[K] = ' ') and (sName[K+1] = ' ') then
+       begin
+        MessageDlg('The name you entered contains a double space, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+     end;
+
+   //Country
+   if  not(dmEuroTrekker.tblCountryInfo.Locate('CountryName',sCountry,[])) then
+        begin
+          MessageDlg('The country/capital you entered was not found, please re-enter.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   if sCountry = '' then
+        begin
+         MessageDlg('All fields are compulsory, please enter country/capital.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   for K := 1 to Length(sName) do
+     begin
+
+       if not((sCountry[K] in['A'..'Z']) or (sCountry[K] in['a'..'z']) or (sCountry[K] = ' '))  then
+       begin
+        MessageDlg('The country/capital you entered contains numbered digits or symbols, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+
+       if (sCountry[K] = ' ') and (sCountry[K+1] = ' ') then
+       begin
+        MessageDlg('The country/capital you entered contains a double space, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+     end;
+
+   //Type
+   if sType = '' then
+        begin
+         MessageDlg('All fields are compulsory, please enter a type.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   for K := 1 to Length(sName) do
+     begin
+       if (sType[K] = ' ') and (sType[K+1] = ' ') then
+       begin
+        MessageDlg('The country you entered contains a double space, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+     end;
+
+   if not((sType = '5Star') or (sType = '3Star') or (sType = 'BnB')) then
+       begin
+        MessageDlg('Incorrect Format Enter Only (5Star, 3Star, BnB)',mtError,[mbOK],0);
+        Abort;
+       end;
+
+
+  Result := True;
+
+end;
+
+function TBusinessAccess.Validate(sName, sCountry: string): Boolean;
+var
+ K : Integer;
+begin
+  //Name
+   if sName = '' then
+        begin
+         MessageDlg('All fields are compulsory, please enter name.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   for K := 1 to Length(sName) do
+     begin
+       if not((sName[K] in['A'..'Z']) or (sName[K] in['a'..'z']) or (sName[K] = ' '))  then
+       begin
+        MessageDlg('The name you entered contains numbered digits or symbols, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+
+       if (sName[K] = ' ') and (sName[K+1] = ' ') then
+       begin
+        MessageDlg('The name you entered contains a double space, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+     end;
+
+   //Country
+   if  not(dmEuroTrekker.tblCountryInfo.Locate('CountryName',sCountry,[])) then
+        begin
+          MessageDlg('The country you entered was not found, please re-enter.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+   if sCountry = '' then
+        begin
+         MessageDlg('All fields are compulsory, please enter country/capital.',mtError,[mbOK],0);
+         Abort;
+        end;
+
+ {  for K := 1 to Length(sName) do
+     begin
+
+      if not((sCountry[K] in['A'..'Z']) or (sCountry[K] in['a'..'z']) or (sCountry[K] = ' '))  then
+      begin
+        MessageDlg('The country/capital you entered contains numbered digits or symbols, please re-enter.',mtError,[mbOK],0);
+       Abort;
+       end;
+
+       if (sCountry[K] = ' ') and (sCountry[K+1] = ' ') then
+       begin
+        MessageDlg('The country/capital you entered contains a double space, please re-enter.',mtError,[mbOK],0);
+        Abort;
+       end;
+     end;   }
+
+     Result := True;
+end;
+
+end.
